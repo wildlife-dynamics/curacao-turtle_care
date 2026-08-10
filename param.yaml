@@ -1,0 +1,17 @@
+workflow_details:
+  name: "Turtles Under Care"
+  description: "Daily operations — turtles currently in care across rescue facilities"
+er_client:
+  data_source:
+    name: curacao
+# until also doubles as "today" for computing days_in_care — keep it current
+# for accurate results on each real run.
+time_range:
+  since: "2025-01-01T00:00:00.000Z"
+  until: "2026-08-10T00:00:00.000Z"
+state_filter:
+  values:
+    - active
+groupers:
+  groupers:
+    - index_name: dispositon_location
