@@ -35,7 +35,7 @@ rjsf-overrides:
     state_filter.properties.values.uniqueItems: true
     state_filter.properties.values.minItems: 1
     state_filter.properties.values.default:
-      - resolved
+      - active
 
     # ── Grouping ──────────────────────────────────────────────────────────────────
     groupers.properties.groupers.description: >
