@@ -1,0 +1,13 @@
+name: Turtles Under Care
+
+author:
+  - name: ""
+    organization: Wildlife Dynamics
+    email: ""
+
+description: >
+  Internal daily-check workflow listing turtles currently in care across
+  rescue facilities, with their intake measurements and health flags, so
+  staff have a single live view of the animals under their responsibility.
+
+citation: []
