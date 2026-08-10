@@ -1,0 +1,8 @@
+.pixi/
+pixi.lock
+__pycache__/
+*.pyc
+.DS_Store
+Makefile.local
+Makefile
+.scripts/
