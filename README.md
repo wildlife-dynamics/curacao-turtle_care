@@ -2,7 +2,7 @@
 
 Daily-operations workflow for Curaçao's sea turtle care program. It pulls turtle intake and check-up records from EarthRanger, filters down to turtles currently housed at a rescue centre or sea aquarium, and produces a dashboard grouped by disposition location or turtle number, so care staff can see at a glance how many turtles are under care, their measurements, and any health flags.
 
-## 📊 Dashboard
+## Dashboard
 
 Three widgets, split into a tab per group (see [Grouping](#-grouping)). Switching tabs filters every widget to that group's data.
 
@@ -30,17 +30,17 @@ Three widgets, split into a tab per group (see [Grouping](#-grouping)). Switchin
 | Tail Length (cm) |
 | Abnormalities |
 
-## 🔄 Event types
+## Event types
 
 | Event type | Used? | Notes |
 |---|:---:|---|
 | Turtle Data Form V2 | ✅ | The only event type fetched. Carries intake measurements, disposition, and health flags for each turtle check-up. |
 
-## 🏥 Under care definition
+## Under care definition
 
 "Under care" means the Disposition Location field on the event is Rescue Center or Sea Aquarium. Records with any other disposition (a beach name, released, deceased, or other) are excluded before grouping and display.
 
-## 🔍 State filter
+## State filter
 
 Filter on event state (Active, Resolved), with multiple values selectable. Defaults to Active. If left empty, events of all states are included.
 
@@ -53,7 +53,7 @@ The dashboard groups by Disposition Location (default) or Turtle Number, selecta
 | Disposition Location | A Rescue Center tab and a Sea Aquarium tab |
 | Turtle Number | One tab per turtle, useful for reviewing a single turtle's check-up history in isolation |
 
-## 📅 Days in care
+## Days in care
 
 Days in care is computed as today minus the date recorded on the Turtle Data Form. "Today" is taken from the workflow's own configured time range (`until`) rather than the real wall-clock date, so a run always classifies days in care consistently with whatever period it was configured to look at, including re-runs against a past window. If the form's date field is empty, the event's own timestamp is used instead.
 
