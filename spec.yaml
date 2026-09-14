@@ -19,7 +19,7 @@ requirements:
     version: 0.9.2
     channel: conda-forge
   - name: ecoscope-workflows-ext-curacao
-    version: "0.0.5"
+    version: "0.0.7"
     channel: https://repo.prefix.dev/ecoscope-workflows-custom/
 
 rjsf-overrides:
@@ -46,6 +46,14 @@ rjsf-overrides:
       - "$ref": "#/$defs/ValueGrouper"
     groupers.properties.groupers.default:
       - index_name: dispositon_location
+
+    # ── Word Report ───────────────────────────────────────────────────────────────
+    report_template_path.properties.var.title: Report Template Path
+    report_template_path.properties.var.description: >
+      Path or URL to the .docx Jinja2 template used for the turtles-under-care
+      Word report.
+    report_template_path.properties.var.default: "https://raw.githubusercontent.com/wildlife-dynamics/curacao-turtle_care/main/resources/templates/turtle_care_template.docx"
+    report_template_path.properties.var.ecoscope:advanced: true
 
   $defs:
     ValueGrouper.properties.index_name.oneOf:
@@ -112,6 +120,10 @@ workflow:
   - name: Set Groupers
     id: groupers
     task: set_groupers
+
+  - name: Report Template Path
+    id: report_template_path
+    task: set_string_var
 
   - name: Process Event Details
     id: all_events_processed
@@ -252,9 +264,11 @@ workflow:
           retain_columns:
             - dispositon_location
             - turtle_number
+            - pit_tag
             - specie
             - fibropapillomatosis
             - days_in_care
+            - date
             - weight_kg
             - curved_carapace_length_cm
             - curved_carapace_width_cm
@@ -265,9 +279,11 @@ workflow:
           rename_columns:
             dispositon_location: "Disposition Location"
             turtle_number: "Turtle number"
+            pit_tag: "Pit Tag"
             specie: "Species"
             fibropapillomatosis: "FP (Y/N)"
             days_in_care: "Days in care"
+            date: "Measurement Date"
             weight_kg: "Weight (kg)"
             curved_carapace_length_cm: "Curved Carapace Length (cm)"
             curved_carapace_width_cm: "Curved Carapace Width (cm)"
@@ -281,7 +297,7 @@ workflow:
 
       - name: Draw Turtle Care Table
         id: turtle_care_table_drawn
-        task: draw_table
+        task: draw_table_with_cell_colors
         partial:
           columns: null
           table_config:
@@ -323,6 +339,107 @@ workflow:
             - never
         partial:
           widgets: ${{ workflow.turtle_care_table_widget.return }}
+
+  # ── Word Report ───────────────────────────────────────────────────────────────
+  # Unlike the dashboard (split per-group via grouped_turtles), the report is
+  # one combined document covering all groups, so its table/counts are built
+  # once directly on the ungrouped under_care_df dataframe.
+
+  - title: Word Report
+    type: task-group
+    description: ""
+    tasks:
+
+      - name: Total Turtles Count (Report)
+        id: total_turtles_count_report
+        task: dataframe_count
+        partial:
+          df: ${{ workflow.under_care_df.return }}
+
+      - name: Filter FP Turtles (Report)
+        id: fp_turtles_report
+        task: filter_row_values
+        partial:
+          df: ${{ workflow.under_care_df.return }}
+          column: fibropapillomatosis
+          values:
+            - "yes"
+
+      - name: FP Count (Report)
+        id: fp_count_report
+        task: dataframe_count
+        partial:
+          df: ${{ workflow.fp_turtles_report.return }}
+
+      - name: Map FP Display (Report)
+        id: fp_display_df_report
+        task: map_values
+        partial:
+          df: ${{ workflow.under_care_df.return }}
+          column_name: fibropapillomatosis
+          value_map:
+            "yes": "Y"
+            "no": "N"
+          missing_values: replace
+          replacement: ""
+
+      - name: Select Table Columns (Report)
+        id: turtle_care_table_report
+        task: map_columns
+        partial:
+          df: ${{ workflow.fp_display_df_report.return }}
+          drop_columns: []
+          raise_if_not_found: true
+          retain_columns:
+            - dispositon_location
+            - turtle_number
+            - pit_tag
+            - specie
+            - fibropapillomatosis
+            - days_in_care
+            - date
+            - weight_kg
+            - curved_carapace_length_cm
+            - curved_carapace_width_cm
+            - straight_carapace_length_cm
+            - straight_carapace_width_cm
+            - tail_length_cm
+            - abnormalities
+          rename_columns:
+            dispositon_location: "Disposition Location"
+            turtle_number: "Turtle number"
+            pit_tag: "Pit Tag"
+            specie: "Species"
+            fibropapillomatosis: "FP (Y/N)"
+            days_in_care: "Days in care"
+            date: "Measurement Date"
+            weight_kg: "Weight (kg)"
+            curved_carapace_length_cm: "Curved Carapace Length (cm)"
+            curved_carapace_width_cm: "Curved Carapace Width (cm)"
+            straight_carapace_length_cm: "Straight Carapace Length (cm)"
+            straight_carapace_width_cm: "Straight Carapace Width (cm)"
+            tail_length_cm: "Tail Length (cm)"
+            abnormalities: "Abnormalities"
+
+      - name: Normalize Output Dir
+        id: norm_output_dir
+        task: remove_file_scheme
+        partial:
+          path: ${{ env.ECOSCOPE_WORKFLOWS_RESULTS }}
+
+      - name: Generate DOCX Report
+        id: docx_report
+        task: generate_turtle_care_report
+        skipif:
+          conditions:
+            - never
+        partial:
+          time_range: ${{ workflow.time_range.return }}
+          turtle_care_table: ${{ workflow.turtle_care_table_report.return }}
+          total_turtles_count: ${{ workflow.total_turtles_count_report.return }}
+          fp_count: ${{ workflow.fp_count_report.return }}
+          template_path: ${{ workflow.report_template_path.return }}
+          output_dir: ${{ workflow.norm_output_dir.return }}
 
   # ── Dashboard ─────────────────────────────────────────────────────────────────
 

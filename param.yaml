@@ -15,3 +15,5 @@ state_filter:
 groupers:
   groupers:
     - index_name: dispositon_location
+report_template_path:
+  var: "/Users/zak/Documents/w-dynamics/curacao-turtle_care/resources/templates/turtle_care_template.docx"

@@ -27,6 +27,7 @@ get_events = create_func_magicmock(  # 🧪
     anchor="ecoscope.platform.tasks.io",  # 🧪
     func_name="get_events",  # 🧪
 )  # 🧪
+from ecoscope.platform.tasks.config import set_string_var as set_string_var
 from ecoscope.platform.tasks.groupby import set_groupers as set_groupers
 from ecoscope_workflows_ext_custom.tasks.transformation import (
     filter_row_values as filter_row_values,
@@ -45,14 +46,22 @@ from ecoscope.platform.tasks.results import (
 from ecoscope.platform.tasks.results import (
     create_single_value_widget_single_view as create_single_value_widget_single_view,
 )
-from ecoscope.platform.tasks.results import draw_table as draw_table
 from ecoscope.platform.tasks.results import gather_dashboard as gather_dashboard
 from ecoscope.platform.tasks.results import merge_widget_views as merge_widget_views
 from ecoscope.platform.tasks.skip import never as never
 from ecoscope.platform.tasks.transformation import map_columns as map_columns
 from ecoscope.platform.tasks.transformation import map_values as map_values
 from ecoscope_workflows_ext_curacao.tasks import (
+    draw_table_with_cell_colors as draw_table_with_cell_colors,
+)
+from ecoscope_workflows_ext_curacao.tasks import (
     extract_turtle_care_fields as extract_turtle_care_fields,
+)
+from ecoscope_workflows_ext_curacao.tasks import (
+    generate_turtle_care_report as generate_turtle_care_report,
+)
+from ecoscope_workflows_ext_custom.tasks.io import (
+    remove_file_scheme as remove_file_scheme,
 )
 
 
@@ -181,6 +190,23 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             unpack_depth=1,
         )
         .partial(**(params.get("groupers") or {}))
+        .call()
+    )
+
+    report_template_path = (
+        task(set_string_var)
+        .validate()
+        .set_task_instance_id("report_template_path")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(**(params.get("report_template_path") or {}))
         .call()
     )
 
@@ -439,9 +465,11 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             retain_columns=[
                 "dispositon_location",
                 "turtle_number",
+                "pit_tag",
                 "specie",
                 "fibropapillomatosis",
                 "days_in_care",
+                "date",
                 "weight_kg",
                 "curved_carapace_length_cm",
                 "curved_carapace_width_cm",
@@ -453,9 +481,11 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             rename_columns={
                 "dispositon_location": "Disposition Location",
                 "turtle_number": "Turtle number",
+                "pit_tag": "Pit Tag",
                 "specie": "Species",
                 "fibropapillomatosis": "FP (Y/N)",
                 "days_in_care": "Days in care",
+                "date": "Measurement Date",
                 "weight_kg": "Weight (kg)",
                 "curved_carapace_length_cm": "Curved Carapace Length (cm)",
                 "curved_carapace_width_cm": "Curved Carapace Width (cm)",
@@ -470,7 +500,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
     )
 
     turtle_care_table_drawn = (
-        task(draw_table)
+        task(draw_table_with_cell_colors)
         .validate()
         .set_task_instance_id("turtle_care_table_drawn")
         .handle_errors()
@@ -549,6 +579,184 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
         .partial(
             widgets=turtle_care_table_widget,
             **(params.get("turtle_care_table_widget_merged") or {}),
+        )
+        .call()
+    )
+
+    total_turtles_count_report = (
+        task(dataframe_count)
+        .validate()
+        .set_task_instance_id("total_turtles_count_report")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(df=under_care_df, **(params.get("total_turtles_count_report") or {}))
+        .call()
+    )
+
+    fp_turtles_report = (
+        task(filter_row_values)
+        .validate()
+        .set_task_instance_id("fp_turtles_report")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            df=under_care_df,
+            column="fibropapillomatosis",
+            values=["yes"],
+            **(params.get("fp_turtles_report") or {}),
+        )
+        .call()
+    )
+
+    fp_count_report = (
+        task(dataframe_count)
+        .validate()
+        .set_task_instance_id("fp_count_report")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(df=fp_turtles_report, **(params.get("fp_count_report") or {}))
+        .call()
+    )
+
+    fp_display_df_report = (
+        task(map_values)
+        .validate()
+        .set_task_instance_id("fp_display_df_report")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            df=under_care_df,
+            column_name="fibropapillomatosis",
+            value_map={"yes": "Y", "no": "N"},
+            missing_values="replace",
+            replacement="",
+            **(params.get("fp_display_df_report") or {}),
+        )
+        .call()
+    )
+
+    turtle_care_table_report = (
+        task(map_columns)
+        .validate()
+        .set_task_instance_id("turtle_care_table_report")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            df=fp_display_df_report,
+            drop_columns=[],
+            raise_if_not_found=True,
+            retain_columns=[
+                "dispositon_location",
+                "turtle_number",
+                "pit_tag",
+                "specie",
+                "fibropapillomatosis",
+                "days_in_care",
+                "date",
+                "weight_kg",
+                "curved_carapace_length_cm",
+                "curved_carapace_width_cm",
+                "straight_carapace_length_cm",
+                "straight_carapace_width_cm",
+                "tail_length_cm",
+                "abnormalities",
+            ],
+            rename_columns={
+                "dispositon_location": "Disposition Location",
+                "turtle_number": "Turtle number",
+                "pit_tag": "Pit Tag",
+                "specie": "Species",
+                "fibropapillomatosis": "FP (Y/N)",
+                "days_in_care": "Days in care",
+                "date": "Measurement Date",
+                "weight_kg": "Weight (kg)",
+                "curved_carapace_length_cm": "Curved Carapace Length (cm)",
+                "curved_carapace_width_cm": "Curved Carapace Width (cm)",
+                "straight_carapace_length_cm": "Straight Carapace Length (cm)",
+                "straight_carapace_width_cm": "Straight Carapace Width (cm)",
+                "tail_length_cm": "Tail Length (cm)",
+                "abnormalities": "Abnormalities",
+            },
+            **(params.get("turtle_care_table_report") or {}),
+        )
+        .call()
+    )
+
+    norm_output_dir = (
+        task(remove_file_scheme)
+        .validate()
+        .set_task_instance_id("norm_output_dir")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            path=os.environ["ECOSCOPE_WORKFLOWS_RESULTS"],
+            **(params.get("norm_output_dir") or {}),
+        )
+        .call()
+    )
+
+    docx_report = (
+        task(generate_turtle_care_report)
+        .validate()
+        .set_task_instance_id("docx_report")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                never,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            time_range=time_range,
+            turtle_care_table=turtle_care_table_report,
+            total_turtles_count=total_turtles_count_report,
+            fp_count=fp_count_report,
+            template_path=report_template_path,
+            output_dir=norm_output_dir,
+            **(params.get("docx_report") or {}),
         )
         .call()
     )
