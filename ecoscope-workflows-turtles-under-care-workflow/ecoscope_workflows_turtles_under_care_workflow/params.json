@@ -163,71 +163,6 @@
       ],
       "type": "object",
       "title": "Report Template Path"
-    },
-    "turtle_care_table_df": {
-      "additionalProperties": false,
-      "properties": {
-        "duplicate_strategy": {
-          "default": "suffix",
-          "enum": [
-            "suffix",
-            "skip",
-            "overwrite",
-            "error"
-          ],
-          "title": "Duplicate Strategy",
-          "type": "string",
-          "description": "Strategy for handling a rename whose new name is already taken. 'suffix': append _1, _2, etc. to the new name; 'skip': skip the rename, leaving the column under its original name; 'overwrite': replace the existing column; 'error': raise ValueError.",
-          "ecoscope:advanced": true
-        }
-      },
-      "required": [],
-      "type": "object",
-      "title": "Select Table Columns"
-    },
-    "turtle_care_table_drawn": {
-      "additionalProperties": false,
-      "properties": {
-        "column": {
-          "default": null,
-          "title": "Column",
-          "type": "string",
-          "description": "Column whose values are rendered as a color-coded tag. Leave unset for no tag coloring."
-        },
-        "color_map": {
-          "additionalProperties": {
-            "type": "string"
-          },
-          "default": null,
-          "title": "Color Map",
-          "type": "object",
-          "description": "Maps each value in `column` to a hex color for its tag."
-        }
-      },
-      "required": [],
-      "type": "object",
-      "title": "Draw Turtle Care Table"
-    },
-    "turtle_care_table_report": {
-      "additionalProperties": false,
-      "properties": {
-        "duplicate_strategy": {
-          "default": "suffix",
-          "enum": [
-            "suffix",
-            "skip",
-            "overwrite",
-            "error"
-          ],
-          "title": "Duplicate Strategy",
-          "type": "string",
-          "description": "Strategy for handling a rename whose new name is already taken. 'suffix': append _1, _2, etc. to the new name; 'skip': skip the rename, leaving the column under its original name; 'overwrite': replace the existing column; 'error': raise ValueError.",
-          "ecoscope:advanced": true
-        }
-      },
-      "required": [],
-      "type": "object",
-      "title": "Select Table Columns (Report)"
     }
   },
   "$defs": {
@@ -360,12 +295,6 @@
         "timezone"
       ]
     },
-    "turtle_care_table_drawn": {
-      "ui:order": [
-        "column",
-        "color_map"
-      ]
-    },
     "ui:order": [
       "workflow_details",
       "er_client",
@@ -373,10 +302,7 @@
       "all_events",
       "state_filter",
       "groupers",
-      "report_template_path",
-      "turtle_care_table_df",
-      "turtle_care_table_drawn",
-      "turtle_care_table_report"
+      "report_template_path"
     ]
   },
   "additionalProperties": false

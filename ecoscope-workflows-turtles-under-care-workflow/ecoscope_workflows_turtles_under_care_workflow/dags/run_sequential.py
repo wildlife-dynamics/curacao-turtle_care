@@ -443,6 +443,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
         .partial(
             drop_columns=[],
             raise_if_not_found=True,
+            duplicate_strategy="suffix",
             retain_columns=[
                 "dispositon_location",
                 "turtle_number",
@@ -494,6 +495,8 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             unpack_depth=1,
         )
         .partial(
+            column=None,
+            color_map=None,
             columns=None,
             table_config={
                 "enable_sorting": True,
@@ -661,6 +664,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             df=fp_display_df_report,
             drop_columns=[],
             raise_if_not_found=True,
+            duplicate_strategy="suffix",
             retain_columns=[
                 "dispositon_location",
                 "turtle_number",

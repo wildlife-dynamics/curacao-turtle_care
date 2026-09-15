@@ -261,6 +261,7 @@ workflow:
         partial:
           drop_columns: []
           raise_if_not_found: true
+          duplicate_strategy: suffix
           retain_columns:
             - dispositon_location
             - turtle_number
@@ -299,6 +300,8 @@ workflow:
         id: turtle_care_table_drawn
         task: draw_table_with_cell_colors
         partial:
+          column: null
+          color_map: null
           columns: null
           table_config:
             enable_sorting: true
@@ -390,6 +393,7 @@ workflow:
           df: ${{ workflow.fp_display_df_report.return }}
           drop_columns: []
           raise_if_not_found: true
+          duplicate_strategy: suffix
           retain_columns:
             - dispositon_location
             - turtle_number
