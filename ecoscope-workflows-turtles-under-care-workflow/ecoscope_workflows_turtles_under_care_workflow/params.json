@@ -25,8 +25,8 @@
       "properties": {
         "data_source": {
           "$ref": "#/$defs/EarthRangerConnection",
-          "title": "",
-          "description": "Select one of your configured data sources."
+          "description": "Select one of your configured data sources.",
+          "title": ""
         }
       },
       "required": [
@@ -39,23 +39,19 @@
       "additionalProperties": false,
       "properties": {
         "since": {
+          "description": "The start time",
           "format": "date-time",
           "title": "Since",
-          "type": "string",
-          "description": "The start time"
+          "type": "string"
         },
         "until": {
+          "description": "The end time",
           "format": "date-time",
           "title": "Until",
-          "type": "string",
-          "description": "The end time"
+          "type": "string"
         },
         "timezone": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/TimezoneInfo"
-            }
-          ],
+          "$ref": "#/$defs/TimezoneInfo",
           "default": null,
           "title": "Timezone"
         }
@@ -73,6 +69,8 @@
       "properties": {
         "event_states": {
           "default": null,
+          "description": "Choose to analyze events with a certain state. If left empty, events of all states will be analyzed",
+          "ecoscope:advanced": true,
           "items": {
             "type": "string",
             "oneOf": [
@@ -96,9 +94,7 @@
           },
           "title": "Event State",
           "type": "array",
-          "description": "Choose to analyze events with a certain state. If left empty, events of all states will be analyzed",
-          "uniqueItems": true,
-          "ecoscope:advanced": true
+          "uniqueItems": true
         }
       },
       "required": [],
@@ -110,12 +106,12 @@
       "properties": {
         "values": {
           "default": null,
+          "description": "The values to keep. If None, no filtering is applied.",
           "items": {
             "type": "string"
           },
           "title": "Values",
-          "type": "array",
-          "description": "The values to keep. If None, no filtering is applied."
+          "type": "array"
         }
       },
       "required": [],
@@ -127,6 +123,7 @@
       "properties": {
         "groupers": {
           "default": null,
+          "description": "            Specify how the data should be grouped to create the views for your dashboard.\n            This field is optional; if left blank, all the data will appear in a single view.\n            ",
           "items": {
             "anyOf": [
               {
@@ -142,8 +139,7 @@
             "title": "Group by"
           },
           "title": " ",
-          "type": "array",
-          "description": "            Specify how the data should be grouped to create the views for your dashboard.\n            This field is optional; if left blank, all the data will appear in a single view.\n            "
+          "type": "array"
         }
       },
       "type": "object",
